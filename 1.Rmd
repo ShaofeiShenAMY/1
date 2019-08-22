@@ -1,0 +1,172 @@
+---
+title: "Shaofei Shen_45503745_assignment1"
+author: "Shaofei Shen"
+date: "2019/8/20"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Q1
+#### Method 1 
+using the annuity formula to calculate the annual repayment as $PV=PMT*\sum_{n=1}^{30} \frac{1}{(1+i)^n}$, where PV=600000, i=3.5%, and find PMT
+```{r}
+PMT<-function(i,n){
+  pv<-(1-(1/(1+i)^n))/i
+  return(600000/pv)
+}
+PMT(0.035,30)
+```
+
+##### Method 2 
+using uniroot function, where we set the annual payment as our unknow x variable. we need to let the present value of all the cashflow equals to the loan amount 600000. However, uniroot can only find the value that make the function equals to 0. we need to makke the function value equals to 0 by reducing 600000.   
+```{r}
+PV<-function(x){
+  ##generate the annual payment vetor for 30 yrs
+  PMT<-c(rep(x,30))
+  ##generate the dicount vector for 30 yrs 
+  v<-1/(1+0.035)^(1:30)
+  PV<-sum(PMT*v)-600000
+  return(PV)
+}
+uniroot(PV,c(0,50000))
+```
+
+### Q2
+####(a)
+```{r}
+PV<-function(x){
+  ##generate the annual payment vetor for 30 yrs
+  PMT<-c(rep(x,30))
+  ##generate the dicount vector for 30 yrs 
+  v<-1/(1+0.035)^(1:30)
+  PV<-sum(PMT*v)-500000
+  return(PV)
+}
+uniroot(PV,c(0,50000))
+```
+we involved interest payment. To exclude the portion from interest, we need to add it back by $3500 (100000*3.5%), which is 27185.67+3500= 30685.67
+
+####(b)
+```{r}
+PV<-function(n){
+  PMT<-c(rep(30685.67,n))
+  ##generate the dicount vector for n yrs 
+  v<-1/(1+0.035)^(1:n)
+  PV<-sum(PMT*v)-500000
+  return(PV)
+}
+uniroot(PV,c(0,30))
+```
+so the last payment will be made on 30 years later, which is 19th March 2045.
+
+####(b)
+```{r}
+PV<-function(n){
+  PMT<-c(rep(34185.67,n))
+  ##generate the dicount vector for n yrs 
+  v<-1/(1+0.035)^(1:n)
+  PV<-sum(PMT*v)-600000
+  return(PV)
+}
+uniroot(PV,c(0,30))
+```
+
+
+### Q3
+#### (a)
+```{r}
+PMT<-function(i,n){
+  pv<-(1-(1/(1+i)^n))/i
+  return(1000*pv)
+}
+PMT(0.035,30)
+```
+
+#### (b)
+The interest rate should be lower. Since the present value of all cashflow with commssion (600000+18392.05=618392.05) is greater than the one wothout commission (600000). Keep the same annual payment and interest rate, we need to lower the interest rate to allow commission involved. As the fomular $PV=\sum_{n=1}^{30} \frac{PMT}{(1+i)^n}$. 
+
+#### (c)
+the present value of all future cashflow is 600000+18392.05=618392.05. Using the formula $PV=\sum_{n=1}^{30} \frac{PMT}{(1+i)^n}$, we need to find an interest rate that can make the present value is 618392.05, keep the annual payment same as before 32622.8. Using function "uniroot", we set our unknow variable as interest rate i to make the function is 0. we already known from (b) that the interest rate is lower, so our interest rate range should be within [0,3.5%]
+```{r}
+rate<-function(i){
+   PMT<-c(rep(32622.799,30))
+  ##generate the dicount factor for 30 yrs 
+  v<-1/(1+i)^(1:30)
+  PV<-sum(PMT*v)
+  return(PV-(600000+18392.05))
+}
+uniroot(rate,c(0,0.035))
+```
+we find out the new interst rate is 3.26%.
+
+#### (d)
+we are using the new interest rate 3.26%. The present value of loan amount is 600000. find out the new annual payment. 
+```{r}
+PV<-function(x){
+  ##generate the annual payment vetor for 30 yrs
+  PMT<-c(rep(x,30))
+  ##generate the dicount vector for 30 yrs 
+  v<-1/(1+0.0326)^(1:30)
+  PV<-sum(PMT*v)-600000
+  return(PV)
+}
+uniroot(PV,c(30000,50000))
+```
+The new annual payment is found out by using "uniroot", which is 31629.27. the new payment is 973.53 (32622.8-31649.27) less than before. 
+
+### Q4
+Life A
+```{r}
+install.packages("timevis", repos = "http://cran.us.r-project.org")
+library(timevis)
+data <- data.frame(
+  id      = 1:7,
+  content = c("28 Birthday", "PA_1",
+              "1/1 preceding death", "29 Birthday","death","PA_2","30 Birthday"),
+  start   = c("1992-05-16", "1993-07-21",
+              "1994-01-01", "1994-05-16","1994-06-22","1994-07-21","1995-05-16")
+)
+timevis(data)
+```
+Age at the next birthdayday at death is 30 years old. Since death occurs after 29 last birthday before 30 last bithday.
+Age last birthday at 1st Jan preceiing death is 28 years old. The 1st Jan preceding death is 1/1/1994. The age last birthday on 1/1/1994 is 28
+Age at the birthday in the policy year of death is 29 years old. The birthday occurs in current policy year (21/07/1993-21/07/1994) is on 16st May 1994 last birthday is 29 years old.  
+ 
+
+Life B
+```{r}
+data <- data.frame(
+  id      = 1:7,
+  content = c("70 Birthday", "PA_1",
+              "1/1 preceding death", "71 Birthday","death","PA_2","72 Birthday"),
+  start   = c("1992-03-01", "1992-09-23",
+              "1993-01-01", "1993-03-01","1993-07-21","1994-09-23","1994-03-01")
+)
+timevis(data)
+```
+Age at the next birthdayday at death is 72 years old. Since death occurs after 71 last birthday before 72 last bithday.
+Age last birthday at 1st Jan preceiing death is 70 years old. The 1st Jan preceding death is 1/1/1993. The age last birthday on 1/1/1993 is 70.
+Age at the birthday in the policy year of death is 71 years old. The birthday occurs in current policy year (23/09/1992-23/09/1993) is on 1st March 1993 last birthday is 71 years old.
+
+
+Life C
+```{r}
+data <- data.frame(
+  id      = 1:6,
+  content = c("PA_1", "53 Birthday",
+              "1/1 preceding death", "death","PA_2","54 Birthday"),
+  start   = c("1995-06-02", "1995-09-21",
+              "1996-01-01", "1996-04-29","1996-06-02","1996-09-21")
+)
+timevis(data)
+```
+Age at the next birthdayday at death is 54 years old. Since death occurs after 53 last birthday before 54 last bithday.
+Age last birthday at 1st Jan preceiing death is 53 years old. The 1st Jan preceding death is 1/1/1996. The age last birthday on 1/1/1996 is 53.
+Age at the birthday in the policy year of death is 53 years old. The birthday occurs in current policy year (02/06/1995-02/06/1996) is on 21st Sep 1995 last birthday is 53 years old.
